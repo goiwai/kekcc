@@ -1,0 +1,19 @@
+# for OSX
+.DS_Store
+Icon
+
+# for Windows
+Thumbs.db
+
+# ignore binary and backup files
+*.nmf
+*.nexe
+*.pexe
+*.bc
+*~
+*.o
+*.a
+*.so
+*.deps
+*.stamp
+*.swp
