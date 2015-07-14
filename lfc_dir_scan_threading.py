@@ -84,12 +84,12 @@ if __name__ == '__main__':
         path_to_dir = _path_to_dir
 
 
-    print 'n_threads=', n_threads, 'path_to_dir=', path_to_dir,
+    print >> sys.stderr, 'n_threads=', n_threads, 'path_to_dir=', path_to_dir,
     for i in range(5):
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        sys.stderr.write('.')
+        sys.stderr.flush()
         time.sleep(1)
-    print
+    print >> sys.stderr
 
     for i in xrange(n_threads):
         slv = slave(i, path_to_dir)
