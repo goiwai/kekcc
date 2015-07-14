@@ -15,8 +15,7 @@ _path_to_dir = '/grid/belle'
 def print_error(msg):
     err_num = lfc.cvar.serrno
     err_string = lfc.sstrerror(err_num)
-    print msg
-    print "Error " + str(err_num) + " (" + err_string + ")"
+    print >> sys.stderr, msg, "Error " + str(err_num) + " (" + err_string + ")"
     return err_num
 
 def print_GUID(path_to_file):
