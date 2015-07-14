@@ -67,7 +67,7 @@ class slave(threading.Thread):
 
 
 if __name__ == '__main__':
-    os.environ['LFC_HOST'] = 'kek2-lfc.cc.kek.jp'
+    # os.environ['LFC_HOST'] = 'kek2-lfc.cc.kek.jp'
     #    Threaded library initialisation
     #lfc.init()
     #
