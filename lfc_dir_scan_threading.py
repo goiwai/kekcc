@@ -65,6 +65,16 @@ class slave(threading.Thread):
         return
 
 
+
+def print_config(msg):
+    print >> sys.stderr, msg,
+    for i in range(5):
+        sys.stderr.write('.')
+        sys.stderr.flush()
+        time.sleep(1)
+    print >> sys.stderr
+
+
 if __name__ == '__main__':
     # os.environ['LFC_HOST'] = 'kek2-lfc.cc.kek.jp'
     #    Threaded library initialisation
@@ -82,13 +92,7 @@ if __name__ == '__main__':
         n_threads = _n_threads
         path_to_dir = _path_to_dir
 
-
-    print >> sys.stderr, 'n_threads=', n_threads, 'path_to_dir=', path_to_dir,
-    for i in range(5):
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        time.sleep(1)
-    print >> sys.stderr
+    print_config('n_threads=' + str(n_threads) + ' path_to_dir=' + path_to_dir)
 
     for i in xrange(n_threads):
         slv = slave(i, path_to_dir)
