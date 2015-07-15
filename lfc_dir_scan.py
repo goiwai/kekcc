@@ -34,7 +34,7 @@ def scan_dir(root_dir):
     dir = lfc.lfc_opendirg(root_dir, "")
 
     if (dir == None) or (dir == 0):
-        return print_err("Error while looking for " + root_dir)
+        return print_error("Error while looking for " + root_dir)
 
 
     while True:
@@ -60,6 +60,15 @@ def scan_dir(root_dir):
 
 
 
+def print_config(msg):
+    print >> sys.stderr, msg,
+    for i in range(5):
+        sys.stderr.write('.')
+        sys.stderr.flush()
+        time.sleep(1)
+    print >> sys.stderr
+
+
 if __name__ == '__main__':
     #os.environ['LFC_HOST'] = 'kek2-lfc.cc.kek.jp'
 
@@ -73,13 +82,7 @@ if __name__ == '__main__':
         n_threads = _n_threads
         path_to_dir = _path_to_dir
 
-
-    print >> sys.stderr, 'n_threads=', n_threads, 'path_to_dir=', path_to_dir,
-    for i in range(5):
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        time.sleep(1)
-    print >> sys.stderr
+    print_config('n_threads=' + str(n_threads) + ' path_to_dir=' + path_to_dir)
 
     for i in xrange(n_threads):
         scan_dir(path_to_dir)
