@@ -1,0 +1,3 @@
+- `dd` 遅いし、とりあえず、 TMP 以下に 1GB ファイルがステージされてあることを前提に。。。
+- KEK/KMI/DESY/CNAF 4サイトキメ打ち
+- まとめは wiki に置いていくか http://wiki.kek.jp/display/~iwai/KEK-CNAF+file+transfer
