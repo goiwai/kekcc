@@ -3,11 +3,25 @@ script_name=$(basename $0)
 script_dir=$(cd $(dirname $0) && pwd)
 dir_at_exec=$(cd . && pwd)
 
+voms-proxy-info --exists > /dev/null 2>&1;
+if test $? -ne 0; then
+    echo "$script_name: no valid proxy cert." >&2
+    exit 1
+fi
+
+voms-proxy-info --vo | grep -q belle
+if test $? -ne 0; then
+    echo "$script_name: found a proxy cert but not for belle." >&2
+    exit 1
+fi
+
+
 default_src_site=KEK
 default_dst_site=KMI
 default_n_tcp=4
 default_n_parallel=4
 default_n_loop=2
+
 opt_s=false
 opt_d=false
 opt_n=false
@@ -193,128 +207,27 @@ dst_filepath_prefix=$(dirname $dst_filepath_prefix)/from_${src_site}_to_${dst_si
 # echo dst_filepath_prefix=$dst_filepath_prefix
 dst_surl_prefix=$(eval echo srm://'$'$(eval echo se_${dst_site}_endpoint)?SFN=${dst_filepath_prefix})
 
+# DEBUG
 echo src_surl=$src_surl
 echo dst_surl_prefix=$dst_surl_prefix
 
 nn=1 && while test $nn -le $n_loop; do
     cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl} ${dst_surl_prefix}_${nn}.{#}'"
-    echo $cmd_transfer
+    _do $cmd_transfer
 
-    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
-    echo $cmd_del
+    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --nobdii --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
 
     if test $? -eq 0; then
         echo "[OK] successfully transfer 1GB of files from $src_site to $dst_site in $n_parallel prallel jobs with $n_tcp tcp streams by $n_loop times repeats."
     else
         echo "[FATAL] error while copying $src_site to $dst_site in $n_parallel parallel jobs with $n_tcp tcp streams in $nn of $n_loop times."
-        # _do $cmd_del
+        _do $cmd_del
         exit 1
     fi
 
-    # _do $cmd_del
-
-    nn=$((nn+1))
-done
-exit 0
-
-# lcg-cp -v file:///$outfile srm://$se_kek/belle/TMP/$name_on_SE
-
-
-# create 1 GB of file
-# outfile=$dir_at_exec/rndfile_1GB_$(date +%Y-%m-%d_%H%M%S)
-
-#1GB
-# cmd="dd bs=$((1024*1024)) if=/dev/urandom of=$outfile count=1024"
-#256MB
-#cmd="dd bs=$((1024*1024)) if=/dev/urandom of=$outfile count=256"
-# echo "this (dd) takes some times..."
-# _do $cmd
-
-# copy from local to kek
-name_on_SE=$(basename $outfile)
-cmd_local_to_kek="lcg-cp -v file:///$outfile srm://$se_kek/belle/TMP/$name_on_SE"
-_do $cmd_local_to_kek
-
-
-if test $? -eq 0; then
-    echo "success."
-else
-    echo "error while copying local to storm/kek."
-    cmd_del="lcg-del -l srm://$se_kek/belle/TMP/$name_on_SE"
-    _do $cmd_del
-    cmd_del="rm $outfile"
-    _do $cmd_del
-    exit 1
-fi
-
-nn=0 && while test $nn -lt $n_loop; do
-
-    # copy from kek to cnaf
-    #cmd_kek_to_cnaf="lcg-cp -v srm://$se_kek/belle/TMP/$name_on_SE srm://$se_cnaf/belle/user/iwai/from_kek_$name_on_SE"
-
-    cmd_kek_to_cnaf="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp -n $n_tcp -v srm://$se_kek/belle/TMP/$name_on_SE srm://$se_desy/pnfs/desy.de/belle/user/iwai/from_kek_${name_on_SE}_${nn}.{#}'"
-#"lcg-cp -n 4 -v srm://kek2-se01.cc.kek.jp/belle/4GB.tmp file:///tmp/4GB.{#}"
-
-    _do $cmd_kek_to_cnaf
-
-
-    # do parallel below
-    if test $? -eq 0; then
-	echo "success."
-    else
-	echo "error while copying storm/kek to storm/desy."
-	cmd_del="lcg-del -l srm://$se_kek/belle/TMP/$name_on_SE"
-	_do $cmd_del
-	cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del -l srm://$se_desy/pnfs/desy.de/belle/user/iwai/from_kek_${name_on_SE}_${nn}.{#}'"
-    #cmd_del="lcg-del -l srm://$se_cnaf/belle/user/iwai/from_kek_$name_on_SE"
-	_do $cmd_del
-    
-	cmd_del="rm $outfile"
-	_do $cmd_del
-	exit 1
-    fi
-
-
-    # copy from cnaf to kek
-    cmd_cnaf_to_kek="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp -n $n_tcp -v srm://$se_desy/pnfs/desy.de/belle/user/iwai/from_kek_${name_on_SE}_${nn}.{#} srm://$se_kek/belle/TMP/from_desy_${name_on_SE}_${nn}.{#}'"
-    _do $cmd_cnaf_to_kek
-
-    if test $? -eq 0; then
-	echo "success."
-    else
-	echo "error while copying storm/desy to storm/kek."
-	cmd_del="lcg-del -l srm://$se_kek/belle/TMP/$name_on_SE"
-	_do $cmd_del
-
-	cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del -l srm://$se_desy/pnfs/desy.de/belle/user/iwai/from_kek_${name_on_SE}_${nn}.{#}'"
-	_do $cmd_del
-
-	cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del -l srm://$se_kek/belle/TMP/from_desy_${name_on_SE}_${nn}.{#}'"
-        #cmd_del="lcg-del -l srm://$se_kek/belle/TMP/from_cnaf_$name_on_SE"
-	_do $cmd_del
-
-	cmd_del="rm $outfile"
-	_do $cmd_del
-	exit 1
-    fi
-
-    nn=$((nn+1))
-done
-
-
-nn=0 && while test $nn -lt $n_loop; do
-    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del -v -l srm://$se_desy/pnfs/desy.de/belle/user/iwai/from_kek_${name_on_SE}_${nn}.{#}'"
-    _do $cmd_del
-    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del -v -l srm://$se_kek/belle/TMP/from_desy_${name_on_SE}_${nn}.{#}'"
     _do $cmd_del
 
     nn=$((nn+1))
 done
-
-cmd_del="lcg-del -l srm://$se_kek/belle/TMP/$name_on_SE"
-_do $cmd_del
-
-cmd_del="rm $outfile"
-_do $cmd_del
 
 exit 0
