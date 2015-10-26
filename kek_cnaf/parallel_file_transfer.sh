@@ -23,13 +23,6 @@ else
     exit 1
 fi
 
-function _do() {
-    local cmd="$*"
-    echo "$cmd"
-    eval $cmd
-    return $?
-}
-
 usage_site_candidate=$(echo $se_nimonic | tr ' ' '|')
 
 usage_message=$(cat <<USAGE_MESSAGE
