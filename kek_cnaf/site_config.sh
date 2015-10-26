@@ -28,3 +28,10 @@ function valid_site() {
     done
     return 1
 }
+
+function _do() {
+    local cmd="$*"
+    echo "$cmd"
+    eval $cmd
+    return $?
+}
