@@ -3,18 +3,9 @@ script_name=$(basename $0)
 script_dir=$(cd $(dirname $0) && pwd)
 dir_at_exec=$(cd . && pwd)
 
-voms-proxy-info --exists > /dev/null 2>&1;
-if test $? -ne 0; then
-    echo "$script_name: no valid proxy cert." >&2
-    exit 1
-fi
-
-voms-proxy-info --vo | grep -q belle
-if test $? -ne 0; then
-    echo "$script_name: found a proxy cert but not for belle." >&2
-    exit 1
-fi
-
+# todo: add kekdiskse
+# grep で site名引っかけてるのは直さないと
+# srm://kek2-diskse01.cc.kek.jp:8444/srm/managerv2?SFN=/belle/TMP/1GB
 
 default_src_site=KEK
 default_dst_site=KMI
@@ -28,20 +19,13 @@ opt_n=false
 opt_p=false
 opt_l=false
 
-se_DESY=dcache-se-desy.desy.de
-se_KEK=kek2-se01.cc.kek.jp
-se_CNAF=storm-fe-archive.cr.cnaf.infn.it
-se_KMI=nsrmfe01.hepl.phys.nagoya-u.ac.jp
-
-se_DESY_endpoint=$se_DESY:8443/srm/managerv2
-se_KEK_endpoint=$se_KEK:8444/srm/managerv2
-se_CNAF_endpoint=$se_CNAF:8444/srm/managerv2
-se_KMI_endpoint=$se_KMI:8444/srm/managerv2
-
-se_DESY_filepath=/pnfs/desy.de/belle/user/iwai/1GB
-se_KEK_filepath=/belle/TMP/1GB
-se_CNAF_filepath=/belle/TMP/1GB
-se_KMI_filepath=/belle/TMP/1GB
+site_config=$script_dir/site_config.sh
+if test -f $site_config; then
+    . $site_config
+else
+    echo "$script_name: not found a file \"`basename $site_config`\" in the directory \"$script_dir\". aborting..." >&2
+    exit 1
+fi
 
 function _do() {
     local cmd="$*"
@@ -50,8 +34,10 @@ function _do() {
     return $?
 }
 
+usage_site_candidate=$(echo $se_nimonic | tr ' ' '|')
+
 usage_message=$(cat <<USAGE_MESSAGE
-Usage: $script_name [-s <KMI|DESY|CNAF|KEK>] [-d <KMI|DESY|CNAF|KEK>] [-n <# of tcp streams>] [-p <# of transfer processes>] [-l <# of repeats>]
+Usage: $script_name [-s <$usage_site_candidate>] [-d <$usage_site_candidate>] [-n <# of tcp streams>] [-p <# of transfer processes>] [-l <# of repeats>]
 To transfer a file of 1GB with 2 TCP streams, and with 2 jobs, and then repeat this twice:
 $script_name -s KMI -d CNAF -n 2 -p 4 -l 2
 
@@ -84,6 +70,19 @@ function signal_handler() {
 }
 
 trap 'signal_handler ${LINENO} $?' EXIT HUP INT QUIT TERM
+
+# voms-proxy-info --exists > /dev/null 2>&1;
+# if test $? -ne 0; then
+#     echo "$script_name: no valid proxy cert." >&2
+#     exit 1
+# fi
+
+# voms-proxy-info --vo | grep -q belle
+# if test $? -ne 0; then
+#     echo "$script_name: found a proxy cert but not for belle." >&2
+#     exit 1
+# fi
+
 
 
 while getopts s:d:n:p:l:h opt; do
@@ -120,8 +119,10 @@ shift $((OPTIND-1))
 #lcg-ls --nobdii --setype srmv2 srm://dcache-se-desy.desy.de:8443/srm/managerv2?SFN=/pnfs/desy.de/belle/user/iwai
 #=> srm://${se_desy_endpoint}?SFN=${se_desy_filepath}
 
+
 if $opt_s; then
-    echo $src_site | grep -qi 'kek\|cnaf\|desy\|kmi'
+    # echo $src_site | grep -qi "$grep_site_candidate"
+    valid_site $src_site
     if test $? -eq 0; then
         src_site=$(echo $src_site | tr '[:lower:]' '[:upper:]')
     else
@@ -133,7 +134,7 @@ else
 fi
 
 if $opt_d; then
-    echo $dst_site | grep -qi 'kek\|cnaf\|desy\|kmi'
+    valid_site $dst_site
     if test $? -eq 0; then
         dst_site=$(echo $dst_site | tr '[:lower:]' '[:upper:]')
     else
