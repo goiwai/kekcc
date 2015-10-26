@@ -3,10 +3,6 @@ script_name=$(basename $0)
 script_dir=$(cd $(dirname $0) && pwd)
 dir_at_exec=$(cd . && pwd)
 
-# todo: add kekdiskse
-# grep で site名引っかけてるのは直さないと
-# srm://kek2-diskse01.cc.kek.jp:8444/srm/managerv2?SFN=/belle/TMP/1GB
-
 default_src_site=KEK
 default_dst_site=KMI
 default_n_tcp=4
@@ -71,17 +67,17 @@ function signal_handler() {
 
 trap 'signal_handler ${LINENO} $?' EXIT HUP INT QUIT TERM
 
-# voms-proxy-info --exists > /dev/null 2>&1;
-# if test $? -ne 0; then
-#     echo "$script_name: no valid proxy cert." >&2
-#     exit 1
-# fi
+voms-proxy-info --exists > /dev/null 2>&1;
+if test $? -ne 0; then
+    echo "$script_name: no valid proxy cert." >&2
+    exit 1
+fi
 
-# voms-proxy-info --vo | grep -q belle
-# if test $? -ne 0; then
-#     echo "$script_name: found a proxy cert but not for belle." >&2
-#     exit 1
-# fi
+voms-proxy-info --vo | grep -q belle
+if test $? -ne 0; then
+    echo "$script_name: found a proxy cert but not for belle." >&2
+    exit 1
+fi
 
 
 
