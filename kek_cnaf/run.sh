@@ -24,7 +24,7 @@ for se_src in $se_nimonic; do
         work_dir=$result_dir_root/from_${se_src}_to_${se_dst}
         _do mkdir -p $work_dir
         _do cd $work_dir
-        cmd_transfer="$script_dir/parallel_file_transfer.sh -s $se_src -d $se_dst -n 10 -p 4 -l 2"
+        cmd_transfer="$script_dir/parallel_file_transfer.sh -s $se_src -d $se_dst -n 4 -p 10 -l 2"
         #cmd_transfer="$script_dir/parallel_file_transfer.sh -s $se_src -d $se_dst -n 2 -p 2 -l 1"
         _do voms-proxy-init -voms belle
         #echo $cmd_transfer
