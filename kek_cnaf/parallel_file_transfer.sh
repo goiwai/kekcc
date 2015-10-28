@@ -49,7 +49,7 @@ function signal_handler() {
     local lineno_last_exit=$(cat -n $script_dir/$script_name | tail | grep -e 'exit.*0' | awk '{print $1}')
 
     if test $LASTLINE -eq $lineno_last_exit; then
-        echo "$script_name: [INFO] successfully exited at the line: $LASTLINE with return code: $LASTERR."
+        echo "$script_name: [INFO] successfully exited at the line: $LASTLINE (EOF) with return code: $LASTERR."
     elif test $LASTERR -eq 0; then
         echo "$script_name: [WARN] Exited with 0 but not ended at EOF. signal trapped at the line: $LASTLINE with return code: $LASTERR."
     else
@@ -202,20 +202,30 @@ echo src_surl=$src_surl
 echo dst_surl_prefix=$dst_surl_prefix
 
 nn=1 && while test $nn -le $n_loop; do
+    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --nobdii --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
     cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl} ${dst_surl_prefix}_${nn}.{#}'"
     _do $cmd_transfer
-
-    cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --nobdii --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
 
     if test $? -eq 0; then
         echo "[OK] successfully transfer 1GB of files from $src_site to $dst_site in $n_parallel prallel jobs with $n_tcp tcp streams by $n_loop times repeats."
     else
-        echo "[FATAL] error while copying $src_site to $dst_site in $n_parallel parallel jobs with $n_tcp tcp streams in $nn of $n_loop times."
+        echo "[FATAL] error while copying $src_site to $dst_site in $n_parallel parallel jobs with $n_tcp tcp stream(s) in $nn of $n_loop times."
         _do $cmd_del
         exit 1
     fi
 
     _do $cmd_del
+
+    if test $? -eq 0; then
+        echo "[OK] successfully deletion $n_parallel of 1GB files in $dst_site."
+    else
+        echo "[FATAL] error while deleting files in $dst_site. make sure to delete those files. To check zombie files:"
+        zmb_filepath_prefix=$(eval echo '$'$(eval echo se_${dst_site}_filepath))
+        zmb_filepath_prefix=$(dirname $zmb_filepath_prefix)/
+        zmb_surl_dir=$(eval echo srm://'$'$(eval echo se_${dst_site}_endpoint)?SFN=${zmb_filepath_prefix})
+        _do "lcg-ls --nobdii --defaultsetype srmv2 $zmb_surl_dir"
+        exit 1
+    fi
 
     nn=$((nn+1))
 done
