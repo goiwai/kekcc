@@ -203,7 +203,7 @@ echo dst_surl_prefix=$dst_surl_prefix
 
 nn=1 && while test $nn -le $n_loop; do
     cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --nobdii --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
-    cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl} ${dst_surl_prefix}_${nn}.{#}'"
+    cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl}.${#} ${dst_surl_prefix}_${nn}.{#}'"
     _do $cmd_transfer
 
     if test $? -eq 0; then
