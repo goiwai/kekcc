@@ -2,6 +2,7 @@
 script_name=$(basename $0)
 script_dir=$(cd $(dirname $0) && pwd)
 dir_at_exec=$(cd . && pwd)
+file_size_GB=1
 
 site_config=$script_dir/site_config.sh
 if test -f $site_config; then
@@ -49,9 +50,9 @@ for se_src in $se_nimonic; do
             cnt=$((cnt+1))
         done <<< "$(grep 'Transfer took' $stderr | awk '{print $3}')"
 
-        sec_fast=$(echo "scale=2; 1024/($min_time/1000)" | bc -l)
-        sec_slow=$(echo "scale=2; 1024/($max_time/1000)" | bc -l)
-        sec_avg=$(echo "scale=2; ($cnt*1024)/($sum_time/1000)" | bc -l)
+        sec_fast=$(echo "scale=2; ($file_size_GB*1024)/($min_time/1000)" | bc -l)
+        sec_slow=$(echo "scale=2; ($file_size_GB*1024)/($max_time/1000)" | bc -l)
+        sec_avg=$(echo "scale=2; ($cnt*($file_size_GB*1024))/($sum_time/1000)" | bc -l)
 
         echo "$se_src => $se_dst : $sec_avg MB/sec (fast:$sec_fast/slow:$sec_slow)"
     done
