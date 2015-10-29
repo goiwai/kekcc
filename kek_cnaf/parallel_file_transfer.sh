@@ -8,6 +8,7 @@ default_dst_site=KMI
 default_n_tcp=4
 default_n_parallel=4
 default_n_loop=2
+max_n_parallel=10
 
 opt_s=false
 opt_d=false
@@ -157,6 +158,10 @@ if $opt_p; then
     fi
 else
     n_parallel=$default_n_parallel
+    if test $n_parallel -gt $max_n_parallel; then
+        echo "$script_name: [ERR] invalid number \"n_parallel=$n_parallel\". so far max # of parallel transfer is $max_n_parallel." >&2
+        exit 1
+    fi
 fi
 
 if $opt_l; then
