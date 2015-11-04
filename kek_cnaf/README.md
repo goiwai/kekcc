@@ -6,7 +6,10 @@
 # references
 
 - [fts dashboard](http://dashb-fts-transfers.cern.ch/ui/#date.interval=40320&dst.host=%28%22storm-fe-archive.cr.cnaf.infn.it%22%29&grouping.dst=%28host,token%29&grouping.src=%28host,token%29&j.grouping=file_state&m.content=%28efficiency,errors,successes,throughput%29&p.grouping=src&r.grouping=dst&r.metrics=%28ts%29&server=%28%29&src.host=%28%22kek2-se01.cc.kek.jp%22%29&tab=transfer_plots&vo=%28belle%29)
+- [fts failure logs](https://b2fts3.cc.kek.jp:8449/fts3/ftsmon/#/?vo=&source_se=srm:%2F%2Fkek2-se01.cc.kek.jp&dest_se=srm:%2F%2Fstorm-fe-archive.cr.cnaf.infn.it&time_window=168)
 - [ggus ticket](https://ggus.eu/index.php?mode=ticket_info&ticket_id=113435)
+- [storm@cnaf](https://mon-it.cnaf.infn.it/nagios/cgi-bin/status.cgi?host=storm-fe-archive.cr.cnaf.infn.it)
+- [storm@kek](https://rocnagios.grid.sinica.edu.tw/nagios/cgi-bin/status.cgi?host=kek2-se01.cc.kek.jp)
 
 # 途中経過
 
