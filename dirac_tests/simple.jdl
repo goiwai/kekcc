@@ -1,0 +1,3 @@
+JobName = "Simple Job";
+Executable = "/bin/ls";
+

@@ -1,0 +1,8 @@
+JobName = "Mandelbrot";
+Executable = "mandelbrot";
+Arguments = "-W 600 -H 600 -X -0.46490 -Y -0.56480 -P 0.000002 -M 500";
+InputSandbox = {"LFN:/UB-Master/user/a/atsareg/mandelbrot"};
+StdOutput = "std.out";
+StdError = "std.err";
+OutputSandbox = {"std.out","std.err","*.bmp"};
+MaxCPUTime = 1000;
