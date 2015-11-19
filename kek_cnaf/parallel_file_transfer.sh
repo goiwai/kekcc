@@ -33,15 +33,15 @@ $script_name -s KMI -d CNAF -n 2 -p 4 -l 2
 
 This will consequently create a transfer sequence like:
 #1
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.1 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.2 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.3 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.4 &
+lcg-cp -n 2 srm://KMI/path/to/file.1 srm://CNAF/path/to/file.1 &
+lcg-cp -n 2 srm://KMI/path/to/file.2 srm://CNAF/path/to/file.2 &
+lcg-cp -n 2 srm://KMI/path/to/file.3 srm://CNAF/path/to/file.3 &
+lcg-cp -n 2 srm://KMI/path/to/file.4 srm://CNAF/path/to/file.4 &
 #2
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.1 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.2 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.3 &
-lcg-cp -n 2 srm://KMI/path/to/file srm://CNAF/path/to/file.4 &
+lcg-cp -n 2 srm://KMI/path/to/file.1 srm://CNAF/path/to/file.1 &
+lcg-cp -n 2 srm://KMI/path/to/file.2 srm://CNAF/path/to/file.2 &
+lcg-cp -n 2 srm://KMI/path/to/file.3 srm://CNAF/path/to/file.3 &
+lcg-cp -n 2 srm://KMI/path/to/file.4 srm://CNAF/path/to/file.4 &
 USAGE_MESSAGE)
 
 function signal_handler() {
@@ -63,13 +63,13 @@ trap 'signal_handler ${LINENO} $?' EXIT HUP INT QUIT TERM
 
 voms-proxy-info --exists > /dev/null 2>&1;
 if test $? -ne 0; then
-    echo "$script_name: no valid proxy cert." >&2
+    echo "[ERR] no valid proxy cert." >&2
     exit 1
 fi
 
 voms-proxy-info --vo | grep -q belle
 if test $? -ne 0; then
-    echo "$script_name: found a proxy cert but not for belle." >&2
+    echo "[ERR] found a proxy cert but not for belle." >&2
     exit 1
 fi
 
@@ -116,6 +116,7 @@ if $opt_s; then
     if test $? -eq 0; then
         src_site=$(echo $src_site | tr '[:lower:]' '[:upper:]')
     else
+        echo "[ERR] invalid site name src_site=$src_site" >&2
         echo "$usage_message" >&2
         exit 1
     fi
@@ -128,6 +129,7 @@ if $opt_d; then
     if test $? -eq 0; then
         dst_site=$(echo $dst_site | tr '[:lower:]' '[:upper:]')
     else
+        echo "[ERR] invalid site name dst_site=$dst_site" >&2
         echo "$usage_message" >&2
         exit 1
     fi
@@ -208,13 +210,15 @@ echo dst_surl_prefix=$dst_surl_prefix
 
 nn=1 && while test $nn -le $n_loop; do
     cmd_del="seq $n_parallel | parallel --jobs $n_parallel 'lcg-del --verbose --nolfc --nobdii --defaultsetype srmv2 ${dst_surl_prefix}_${nn}.{#}'"
-    cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl}.${#} ${dst_surl_prefix}_${nn}.{#}'"
+
+    #cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl}.{#} ${dst_surl_prefix}_${nn}.{#}'"
+    cmd_transfer="seq $n_parallel | parallel --jobs $n_parallel 'lcg-cp --verbose --checksum -n $n_tcp --nobdii --srcsetype srmv2 --dstsetype srmv2 ${src_surl}.{#} ${dst_surl_prefix}_${nn}.{#}'"
     _do $cmd_transfer
 
     if test $? -eq 0; then
         echo "[OK] successfully transfer 1GB of files from $src_site to $dst_site in $n_parallel prallel jobs with $n_tcp tcp streams by $n_loop times repeats."
     else
-        echo "[FATAL] error while copying $src_site to $dst_site in $n_parallel parallel jobs with $n_tcp tcp stream(s) in $nn of $n_loop times."
+        echo "[FATAL] error while copying $src_site to $dst_site in $n_parallel parallel jobs with $n_tcp tcp stream(s) in $nn of $n_loop times." >&2
         _do $cmd_del
         exit 1
     fi
@@ -224,7 +228,7 @@ nn=1 && while test $nn -le $n_loop; do
     if test $? -eq 0; then
         echo "[OK] successfully deletion $n_parallel of 1GB files in $dst_site."
     else
-        echo "[FATAL] error while deleting files in $dst_site. make sure to delete those files. To check zombie files:"
+        echo "[FATAL] error while deleting files in $dst_site. make sure to delete those files. To check zombie files:" >&2
         zmb_filepath_prefix=$(eval echo '$'$(eval echo se_${dst_site}_filepath))
         zmb_filepath_prefix=$(dirname $zmb_filepath_prefix)/
         zmb_surl_dir=$(eval echo srm://'$'$(eval echo se_${dst_site}_endpoint)?SFN=${zmb_filepath_prefix})
