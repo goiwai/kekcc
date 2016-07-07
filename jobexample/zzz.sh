@@ -1,3 +1,2 @@
-echo "Hello World!"
-echo "I am `hostname`"
+hostname -f
 echo "message into the stderr..." >&2
