@@ -1,6 +1,6 @@
 # A workaround for no transfer log recorded in /var/log/storm/storm-globus-gridftp.log
 
-The function `globus_i_gfs_log_transfer()` was accidently removed: <https://github.com/gridcf/gct/commit/9a8f75e26261580638d7e36c0aa845b2617e4891#diff-0d41fe5a384e8076fc8f2dc3424bc45a>
+The function `globus_i_gfs_log_transfer()` was accidently removed on the [commit](https://github.com/gridcf/gct/commit/9a8f75e26261580638d7e36c0aa845b2617e4891#diff-0d41fe5a384e8076fc8f2dc3424bc45a)
 
 To build GCT locally:
 
@@ -16,6 +16,13 @@ To build GCT locally:
 ```
 
 On the GridFTP server:
+
+Replace these packages below installed from UMD4 repo:
+
+- [`globus-gridftp-server-13.21-1.gct.x86_64.rpm`](globus-gridftp-server-13.21-1.gct.x86_64.rpm)
+- [`globus-gridftp-server-progs-13.21-1.gct.x86_64.rpm`](globus-gridftp-server-progs-13.21-1.gct.x86_64.rpm)
+- [`globus-gridftp-server-control-9.1-1.gct.x86_64.rpm`](globus-gridftp-server-control-9.1-1.gct.x86_64.rpm)
+
 
 ```
 % sudo systemctl stop storm-globus-gridftp.service
